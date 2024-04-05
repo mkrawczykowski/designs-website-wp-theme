@@ -50,6 +50,11 @@ $meta_args = array(
 register_meta( $object_type, '_yoast_wpseo_primary_category', $meta_args );
 
 
+function media_file_already_exists($filename){
+    global $wpdb;
+    $query = "SELECT COUNT(*) FROM {$wpdb->postmeta} WHERE meta_value LIKE '%/$filename'";
+    return ($wpdb->get_var($query)  > 0) ;
+}
 
 
 function add_to_media_lib($file_url, $file_path) {
@@ -75,9 +80,15 @@ function add_to_media_lib($file_url, $file_path) {
 	}
 
 	return $attach_id;
-	}
+}
 
 function my_save_meta_function($post_id){
+	$image_file_name = 'temp-1-2.jpg';
+
+	if (media_file_already_exists($image_file_name)){
+		return;
+	}
+
 	$thumbnail_URL = get_the_post_thumbnail_url($post_id);
 	$thumbnail_background_ID = get_field('thumbnail_background', 'options');
 	$thumbnail_background_URL = wp_get_attachment_url($thumbnail_background_ID);
@@ -104,13 +115,13 @@ function my_save_meta_function($post_id){
 	}
 
 	if (is_dir($upload_dir) && is_writable($upload_dir)) {
-		if (imagejpeg($new_im, $upload_dir . 'temp-1-2.jpg')) {
+		if (imagejpeg($new_im, $upload_dir . $image_file_name)) {
 			imagedestroy($im1);
 			imagedestroy($im2);
 			imagedestroy($new_im);
 			update_field('test', 'ok', $post_id);
 
-			add_to_media_lib('http://localhost/wp-content/uploads/2024/04/temp-1-2.jpg', 'wp-content/uploads/2024/04/temp-1-2.jpg');
+			add_to_media_lib('http://localhost/wp-content/uploads/2024/04/' . $image_file_name, 'wp-content/uploads/2024/04/' . $image_file_name);
 		} else {
 			update_field('test', 'nok', $post_id);
 		}
