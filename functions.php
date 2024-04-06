@@ -1,42 +1,24 @@
+<?php defined('ABSPATH') or die; ?>
+
 <?php
-
-/**
- * Description of what this module (or file) is doing.
- *
- * @package file
- */
-
-add_theme_support( 'post-thumbnails');
-
-if ( function_exists( 'acf_add_options_page' ) ) {
-	acf_add_options_page(
-		array(
-			'page_title' => 'SEO settings',
-			'menu_title' => 'SEO settings',
-			'menu_slug'  => 'acf-settings',
-			'capability' => 'edit_posts',
-			'redirect'   => false,
-			'show_in_graphql' => true,
-			'show_in_rest' => true
-		)
-	);
-}
-
-
-add_filter( 'acf/settings/save_json', 'my_acf_json_save_point' );
+require_once get_template_directory() . '/inc/actions.php';
+require_once get_template_directory() . '/inc/registers.php';
+//   require_once get_template_directory() . '/inc/styles-scripts.php';
+//   require_once get_template_directory() . '/inc/acf-functions.php';
+//   require_once get_template_directory() . '/inc/acf-blocks.php';
+//   require_once get_template_directory() . '/inc/menus.php';
+//   require_once get_template_directory() . '/inc/helpers.php';
+//   require_once get_template_directory() . '/inc/shortcodes.php';
 
 
 
-/**
- *
- * Makes ACF saving fields to JSON files
- */
 
-function my_acf_json_save_point( $path ) {
-	$path = get_stylesheet_directory() . '/acf-json';
-	return $path;
 
-}
+
+
+
+
+
 
 $object_type = 'post';
 $meta_args = array(
@@ -171,13 +153,4 @@ function my_save_meta_function($post_id){
 	error_log( var_export(get_post($post_id), true), false );
 }
 
-// add_action('save_post_design', 'my_save_meta_function', 11);
-function update_post_acf(){
-	error_log('update post acf 2' );
-}
-function update_post(){
-	error_log('update post 2' );
-}
 
-add_action( 'save_post_design' , 'update_post'); //fires first
-add_action( 'acf/save_post' , 'update_post_acf'); //fires second
