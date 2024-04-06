@@ -48,10 +48,7 @@ global $generated_image_file;
 global $seo_friendly_name;
 
 function generate_image_file($post_id){
-	error_log('generate_image_file');
-	error_log('post_id: ' . $post_id);
-	error_log('generated_featured_image_name: ' . get_field('generated_featured_image_name', $post_id));
-	error_log('generate_featured_image: ' . get_field('generate_featured_image', $post_id));
+	
 	global $current_file_name;
 	global $generated_image_file;
 	global $seo_friendly_name;
@@ -59,6 +56,10 @@ function generate_image_file($post_id){
 	if (!get_field('generate_featured_image', $post_id, true, true)){
 		return;
 	}
+	error_log('generate_image_file');
+	error_log('post_id: ' . $post_id);
+	error_log('generated_featured_image_name: ' . get_field('generated_featured_image_name', $post_id));
+	error_log('generate_featured_image: ' . get_field('generate_featured_image', $post_id));
 	$image_random_file_name = get_field('generated_featured_image_random_name', $post_id);
 	update_field('field_660ecfc33f30d', $image_random_file_name, $post_id);
 	$image_seo_file_name = get_field('generated_featured_image_name', $post_id);
@@ -90,7 +91,6 @@ function generate_image_file($post_id){
 	}
 
 	error_log('generate_image_file after media_file_already_exists');
-	
 
 	$thumbnail_URL = get_the_post_thumbnail_url($post_id);
 	$thumbnail_background_ID = get_field('thumbnail_background', 'options');
@@ -135,19 +135,29 @@ function generate_image_file($post_id){
 		update_field('field_660ecfc33f30d', 'dir nok', $post_id);
 	}
 
+	// add_image_file_to_media_library($post_id);
 	// error_log( var_export(get_post($post_id), true), false );
+	error_log( var_export(get_post($post_id), true), false );
+	add_image_file_to_media_library($post_id);
+	error_log( var_export(get_post($post_id), true), false );
+	error_log( get_field('generated_featured_image_name', $post_id) );
+	error_log('----------------------------------');
 }
 
 
 
 
 function add_image_file_to_media_library($post_id){
-	error_log('add_image_file_to_media_library');
-	error_log('post_id: ' . $post_id);
+	
 	global $current_file_name;
 	global $generated_image_file;
 	global $seo_friendly_name;
 
+	if (!get_field('generate_featured_image', $post_id, true, true)){
+		return;
+	}
+error_log('add_image_file_to_media_library');
+	error_log('post_id: ' . $post_id);
 	$file_path = 'wp-content/uploads/' . date('Y') . '/' . date('m') . '/' . $current_file_name;
 	require_once(ABSPATH . 'wp-admin/includes/image.php');
 	require_once(ABSPATH . 'wp-admin/includes/file.php');
@@ -186,8 +196,8 @@ function separator(){
 }
 
 add_action( 'save_post_design' , 'separator', 1);
-add_action( 'acf/save_post' , 'generate_image_file', 11);
-add_action( 'acf/save_post' , 'add_image_file_to_media_library', 12);
+// add_action( 'save_post_design' , 'add_image_file_to_media_library');
+add_action( 'save_post_design' , 'generate_image_file', 12);
 // add_action( 'acf/save_post' , 'add_image_file_to_media_library', 11);
 
 
