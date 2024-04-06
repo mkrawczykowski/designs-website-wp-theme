@@ -19,12 +19,12 @@ function my_acf_json_save_point( $path ) {
  */
 
 // add_action('save_post_design', 'my_save_meta_function', 11);
-function update_post_acf(){
-	error_log('update post acf 2' );
-}
-function update_post(){
-	error_log('update post 2' );
-}
+// function update_post_acf(){
+// 	error_log('update post acf 2' );
+// }
+// function update_post(){
+// 	error_log('update post 2' );
+// }
 
-add_action( 'save_post_design' , 'update_post'); //fires first
-add_action( 'acf/save_post' , 'update_post_acf'); //fires second
+// add_action( 'save_post_design' , 'update_post'); //fires first
+// add_action( 'acf/save_post' , 'update_post_acf'); //fires second

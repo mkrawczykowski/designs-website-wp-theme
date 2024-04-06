@@ -33,36 +33,29 @@ register_meta( $object_type, '_yoast_wpseo_primary_category', $meta_args );
 function media_file_already_exists($filename){
     global $wpdb;
     $query = "SELECT COUNT(*) FROM {$wpdb->postmeta} WHERE meta_value LIKE '%/$filename'";
-    return ($wpdb->get_var($query)  > 0) ;
+    return ($wpdb->get_var($query) > 0) ;
 }
 
+// function add_to_media_lib($file_url, $file_path) {
+	
 
-function add_to_media_lib($file_url, $file_path) {
-	require_once(ABSPATH . 'wp-admin/includes/image.php');
-	require_once(ABSPATH . 'wp-admin/includes/file.php');
+// 	return $attach_id;
+// }
 
-	$file_type = wp_check_filetype(basename($file_url), null);
 
-	$wp_upload_dir = wp_upload_dir();
+global $current_file_name;
+global $generated_image_file;
+global $seo_friendly_name;
 
-	$attachment = array(
-		'guid' => $wp_upload_dir['url'] . '/' . basename($file_url),
-		'post_mime_type' => $file_type['type'],
-		'post_title' => preg_replace('/\.[^.]+$/', '', basename($file_url)),
-		'post_content' => '',
-		'post_status' => 'inherit',
-	);
+function generate_image_file($post_id){
+	error_log('generate_image_file');
+	error_log('post_id: ' . $post_id);
+	error_log('generated_featured_image_name: ' . get_field('generated_featured_image_name', $post_id));
+	error_log('generate_featured_image: ' . get_field('generate_featured_image', $post_id));
+	global $current_file_name;
+	global $generated_image_file;
+	global $seo_friendly_name;
 
-	$attach_id = wp_insert_attachment($attachment, $file_url);
-
-	if ($attach_data = wp_generate_attachment_metadata($attach_id, $file_path)) {
-		wp_update_attachment_metadata($attach_id, $attach_data);
-	}
-
-	return $attach_id;
-}
-
-function my_save_meta_function($post_id){
 	if (!get_field('generate_featured_image', $post_id, true, true)){
 		return;
 	}
@@ -70,7 +63,7 @@ function my_save_meta_function($post_id){
 	update_field('field_660ecfc33f30d', $image_random_file_name, $post_id);
 	$image_seo_file_name = get_field('generated_featured_image_name', $post_id);
 	$seo_friendly_name = get_field('seo_friendly_name', $post_id, true, true);
-	$current_file_name = '';
+	
 
 	if ($seo_friendly_name){
 		if ($image_seo_file_name){
@@ -89,11 +82,15 @@ function my_save_meta_function($post_id){
 	}
 
 	$current_file_name .= '.jpg';
-	
+	error_log('generate_image_file, current file name: ' . $current_file_name);
 
 	if (media_file_already_exists($current_file_name)){
+		error_log('media_file_already_exists');
 		return;
 	}
+
+	error_log('generate_image_file after media_file_already_exists');
+	
 
 	$thumbnail_URL = get_the_post_thumbnail_url($post_id);
 	$thumbnail_background_ID = get_field('thumbnail_background', 'options');
@@ -119,29 +116,17 @@ function my_save_meta_function($post_id){
 		mkdir($upload_dir, 0755, true);
 	}
 	update_field('field_660ecfc33f30d', 'ok!', $post_id);
-
-	// error_log( 'Saved post ID! : ' . $post_id, false);
 	
 	if (is_dir($upload_dir) && is_writable($upload_dir)) {
-		if (imagejpeg($new_im, $upload_dir . $current_file_name)) {
+		if ($file_created = imagejpeg($new_im, $upload_dir . $current_file_name)) {
+			error_log('$current_file_name ' . $current_file_name);
+			error_log('$upload_dir ' . $upload_dir);
+			error_log('file created? ' . $file_created);
 			imagedestroy($im1);
 			imagedestroy($im2);
 			imagedestroy($new_im);
-			error_log('after imagedestroys');
 
 			$generated_image_file = 'http://localhost/wp-content/uploads/' . date('Y') . '/' . date('m') . '/' . $current_file_name;
-
-			add_to_media_lib($generated_image_file, 'wp-content/uploads/' . date('Y') . '/' . date('m') . '/' . $current_file_name);
-			
-			if ($seo_friendly_name){
-				$testing = update_field('field_66105da321278', $generated_image_file, $post_id); //seo_friendly_name_url
-				// apply_filters('acf/update_value', $generated_image_file, $post_id,  'field_66105da321278');
-
-				error_log('update_field field_66105da321278 ' . $testing );
-			}
-			if (!$seo_friendly_name){
-				update_field('field_66105de121279', $generated_image_file, $post_id); //non_seo_friendly_name_url
-			}
 			
 		} else {
 			update_field('field_660ecfc33f30d', 'nok', $post_id);
@@ -150,7 +135,59 @@ function my_save_meta_function($post_id){
 		update_field('field_660ecfc33f30d', 'dir nok', $post_id);
 	}
 
-	error_log( var_export(get_post($post_id), true), false );
+	// error_log( var_export(get_post($post_id), true), false );
 }
+
+
+
+
+function add_image_file_to_media_library($post_id){
+	error_log('add_image_file_to_media_library');
+	error_log('post_id: ' . $post_id);
+	global $current_file_name;
+	global $generated_image_file;
+	global $seo_friendly_name;
+
+	$file_path = 'wp-content/uploads/' . date('Y') . '/' . date('m') . '/' . $current_file_name;
+	require_once(ABSPATH . 'wp-admin/includes/image.php');
+	require_once(ABSPATH . 'wp-admin/includes/file.php');
+
+	$file_type = wp_check_filetype(basename($generated_image_file), null);
+
+	$wp_upload_dir = wp_upload_dir();
+
+	$attachment = array(
+		'guid' => $wp_upload_dir['url'] . '/' . basename($generated_image_file),
+		'post_mime_type' => $file_type['type'],
+		'post_title' => preg_replace('/\.[^.]+$/', '', basename($generated_image_file)),
+		'post_content' => '',
+		'post_status' => 'inherit',
+	);
+
+	$attach_id = wp_insert_attachment($attachment, $generated_image_file);
+
+	if ($attach_data = wp_generate_attachment_metadata($attach_id, $file_path)) {
+		wp_update_attachment_metadata($attach_id, $attach_data);
+	}
+			
+			if ($seo_friendly_name){
+				$testing = update_field('field_66105da321278', $generated_image_file, $post_id); //seo_friendly_name_url
+				// apply_filters('acf/update_value', $generated_image_file, $post_id,  'field_66105da321278');
+
+				// error_log('update_field field_66105da321278 ' . $testing );
+			}
+			if (!$seo_friendly_name){
+				update_field('field_66105de121279', $generated_image_file, $post_id); //non_seo_friendly_name_url
+			}
+}
+
+function separator(){
+	error_log('============================================================');
+}
+
+add_action( 'save_post_design' , 'separator', 1);
+add_action( 'acf/save_post' , 'generate_image_file', 11);
+add_action( 'acf/save_post' , 'add_image_file_to_media_library', 12);
+// add_action( 'acf/save_post' , 'add_image_file_to_media_library', 11);
 
 
